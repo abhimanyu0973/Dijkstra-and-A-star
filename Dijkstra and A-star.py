@@ -2,7 +2,7 @@ import queue as Q
 pq = Q.PriorityQueue() 
 
 from cProfile import label
-from multiprocessing.sharedctypes import Value
+from multiprocessing.sharedctypes import Value    #pip install pyvis
 from pyvis.network import Network
 
 #defining a graph of campus
@@ -34,6 +34,61 @@ def plotter():      #function to plot the graph(open the html file generated aft
     net.repulsion(node_distance=100, spring_length=300)
     net.show('visualise.html')
 
+def reconstruct_path(came_from, current):  #function to trace back and print the shortest path in A star and dijkstra algorithm
+    final_path = []
+
+    final_path.append(current)
+
+    while current in came_from:
+        current = came_from[current]
+        final_path.append(current)
+    
+    n = len(final_path)
+    n = n-1
+
+    print("Path: ", end="")
+    while n >= 0:
+        print(final_path[n], end="->")
+        n = n-1
+
+def another_dijkstra(source, destination): #function for dijkstra ..... given a source and destination node it returns the shortest distance between them
+    #in dijkstra the priority queue is sorted according to distance of node from source node
+    infinity = 999999
+
+    distTo = {'shankar':infinity
+    ,'old_football_field':infinity
+    ,'mess_1':infinity,
+    'CP':infinity,
+    'SAC':infinity,
+    'kabadi_field':infinity,
+    'workshop':infinity,
+    'f_block':infinity,
+    'g_block':infinity,
+    'main_gate':infinity,
+    'cricket_ground':infinity}
+
+    came_fromm = {}
+    distTo[source] = 0
+    pq.put((0, source))
+    
+
+    while not pq.empty():
+
+        dist,prev =  pq.get()
+
+        for it in graph[prev]:
+
+            nexte,nextDist = it
+
+            if(distTo[nexte] > dist + nextDist):
+                distTo[nexte] = dist + nextDist
+                came_fromm[nexte] = prev
+                pq.put((distTo[nexte], nexte))
+    
+    print(source, " to ", destination)
+    print("Shortest distance using Dijkstra: ", distTo[destination])
+    reconstruct_path(came_fromm, destination)
+
 def dijkstra(source, destination): #function for dijkstra ..... given a source and destination node it returns the shortest distance between them
     #in dijkstra the priority queue is sorted according to distance of node from source node
     infinity = 999999
@@ -50,7 +105,7 @@ def dijkstra(source, destination): #function for dijkstra ..... given a source a
     'main_gate':infinity,
     'cricket_ground':infinity}
 
-
+    came_fromm = {}
     distTo[source] = 0
     pq.put((0, source))
     
@@ -65,29 +120,12 @@ def dijkstra(source, destination): #function for dijkstra ..... given a source a
 
             if(distTo[nexte] > dist + nextDist):
                 distTo[nexte] = dist + nextDist
+                came_fromm[nexte] = prev
                 pq.put((distTo[nexte], nexte))
     
 
     return distTo[destination]
-
-
-
-def reconstruct_path(came_from, current):  #function to trace back and print the shortest path in A star algorithm
-    final_path = []
-
-    final_path.append(current)
-
-    while current in came_from:
-        current = came_from[current]
-        final_path.append(current)
     
-    n = len(final_path)
-    n = n-1
-
-    while n >= 0:
-        print(final_path[n], end="->")
-        n = n-1
-
 
 def A_star(source, destination): #function for A star... prints the shortest path from source to destination
     #in A-star the priority queue is sorted according to heutistic + distance of node from source node
@@ -109,7 +147,7 @@ def A_star(source, destination): #function for A star... prints the shortest pat
     heuristic = {} #makes sure the search is going in the right direction(towards destination)
 
 
-    # calculating heuristics(shortest distance to destination from each point) using dijkstra's algorithm
+    # calculating heuristics(shortest distance to destination from each node) using dijkstra's algorithm
     for keys in graph:
         heuristic[keys] = dijkstra(keys, destination)
     
@@ -122,6 +160,8 @@ def A_star(source, destination): #function for A star... prints the shortest pat
 
         hx,dist,prev =  pq.get()
         if(prev == destination):
+            print(source, " to ", destination)
+            print("Shortest distance using A-star: ",distTo[destination])
             reconstruct_path(came_from, prev) #if we found the destination we wanted to reach to ... backtrack the path where we came from and print answer
             return
 
@@ -143,16 +183,16 @@ def A_star(source, destination): #function for A star... prints the shortest pat
 ####################################################################### FINAL RESULTS
 
 
-plotter() # this functions generates a HTML file in working directory which has the visualisation of the graph
+plotter() # this functions generates a HTML file in working directory(visualise.html) which has the visualisation of the graph
 
+#functions prints shortest distance ....source to destination along with the path(using dijkstra)
+another_dijkstra('shankar', 'SAC')
 
-print('Shortest Distance using dijkstra: ',dijkstra('shankar', 'SAC')) #functions prints shortest distance ....source to destination
+print("\n")
 
-print(" ")
+#functions prints shortest distance ....source to destination along with the path(using A-star)
+A_star('shankar', 'SAC') 
 
-print("Shortest path using A-star: ")
-A_star('shankar', 'SAC') #function prints the path for shortest distance calculated through A-star algorithm... source to destination
-print(" ")
 
 
 
